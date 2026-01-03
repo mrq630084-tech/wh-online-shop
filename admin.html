@@ -3,54 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WH Shop Admin (Full)</title>
+    <title>WH စီမံခန့်ခွဲသူ</title>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <style>
-        :root { --primary: #3b82f6; --bg: #f1f5f9; }
-        body { background: var(--bg); font-family: sans-serif; padding: 10px; margin: 0; }
-        .tab-box { display: flex; gap: 5px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; background: #cbd5e1; font-weight: bold; cursor: pointer; }
-        .tab-btn.active { background: var(--primary); color: white; }
+        :root { --main: #00ff88; --glass: rgba(255, 255, 255, 0.05); }
+        body { background: #0a0e17; color: white; font-family: sans-serif; margin: 0; padding: 15px; }
         
-        .section { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none; }
+        /* Password မျက်နှာပြင် */
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0e17; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .login-card { background: var(--glass); padding: 30px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(15px); text-align: center; width: 85%; }
+        
+        /* Custom Alert ဒီဇိုင်း */
+        .custom-alert { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
+        .alert-box { background: #1a1f2b; padding: 25px; border-radius: 25px; border: 1px solid var(--main); text-align: center; width: 80%; }
+        
+        /* Admin ဒီဇိုင်းများ */
+        .admin-content { display: none; }
+        .tab-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 15px; border: none; border-radius: 15px; background: var(--glass); color: #aaa; font-weight: bold; }
+        .tab-btn.active { background: var(--main); color: #000; }
+        .section { background: var(--glass); padding: 20px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); display: none; }
         .section.active { display: block; }
-        
-        input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .add-btn { background: #10b981; color: white; border: none; width: 100%; padding: 15px; border-radius: 8px; font-weight: bold; }
-        
-        /* Order & Product Items UI */
-        .item-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; margin-bottom: 10px; }
-        .del-btn { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 5px; margin-top: 5px; cursor: pointer; }
-        .order-info { color: #64748b; font-size: 0.9rem; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 15px; border: 1px solid #333; background: rgba(0,0,0,0.3); color: white; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; margin-top: 10px; }
+        .add-btn { background: var(--main); color: #000; }
+        .del-btn { background: #ff4444; color: white; padding: 8px 15px; border-radius: 10px; border:none; cursor:pointer; }
+        .item-card { background: rgba(255,255,255,0.03); border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
 
-    <h2 style="text-align:center;">🛠️ Shop Manager</h2>
-
-    <div class="tab-box">
-        <button id="b1" class="tab-btn active" onclick="showTab('upload')">ပစ္စည်းတင်/ဖျက်</button>
-        <button id="b2" class="tab-btn" onclick="showTab('orders')">အော်ဒါစစ်ရန်</button>
+    <div id="loginOverlay">
+        <div class="login-card">
+            <h2 style="color: var(--main);">လျှို့ဝှက်နံပါတ်</h2>
+            <input type="password" id="pwInput" placeholder="ရိုက်ထည့်ပါ...">
+            <button class="btn add-btn" onclick="checkPw()">အတည်ပြုမည်</button>
+        </div>
     </div>
 
-    <div id="upload" class="section active">
-        <h3>➕ ပစ္စည်းအသစ်တင်ရန်</h3>
-        <input type="text" id="pName" placeholder="ပစ္စည်းအမည်">
-        <input type="number" id="pPrice" placeholder="ဈေးနှုန်း">
-        <input type="text" id="pImg" placeholder="Direct Link (postimg.cc)">
-        <button class="add-btn" onclick="uploadProduct()">Add Product</button>
-        <hr>
-        <h3>📦 လက်ရှိရောင်းနေသော ပစ္စည်းများ</h3>
-        <div id="adminProductList">ဆွဲယူနေသည်...</div>
+    <div id="customAlert" class="custom-alert">
+        <div class="alert-box">
+            <p id="alertMsg" style="font-size: 1.1rem; margin-bottom: 20px;"></p>
+            <div id="alertBtns" style="display: flex; gap: 10px;"></div>
+        </div>
     </div>
 
-    <div id="orders" class="section">
-        <h3>📋 တက်လာသော အော်ဒါများ</h3>
-        <div id="adminOrderList">အော်ဒါများ ဆွဲယူနေသည်...</div>
+    <div class="admin-content" id="adminPanel">
+        <h2 style="text-align: center; color: var(--main);">WH စီမံခန့်ခွဲသူ</h2>
+        <div class="tab-box">
+            <button id="b1" class="tab-btn active" onclick="showTab('upload')">ပစ္စည်းတင်/ဖျက်</button>
+            <button id="b2" class="tab-btn" onclick="showTab('orders')">အော်ဒါများ</button>
+        </div>
+
+        <div id="upload" class="section active">
+            <input type="text" id="pName" placeholder="ပစ္စည်းအမည်">
+            <input type="number" id="pPrice" placeholder="ဈေးနှုန်း">
+            <input type="text" id="pImg" placeholder="ပုံလင့်ခ်">
+            <button class="btn add-btn" onclick="uploadProduct()">ပစ္စည်းအသစ်တင်မည်</button>
+            <hr style="opacity:0.1; margin: 20px 0;">
+            <div id="adminProductList">ဆွဲယူနေသည်...</div>
+        </div>
+
+        <div id="orders" class="section">
+            <div id="adminOrderList">အော်ဒါများ ဆွဲယူနေသည်...</div>
+        </div>
     </div>
 
     <script>
+        const correctPw = "131019";
         const firebaseConfig = {
             apiKey: "AIzaSyBU4Q9G2eyigNWyZVT_dabEFG4fuslwTW4",
             authDomain: "online-shop-wh.firebaseapp.com",
@@ -62,49 +83,69 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // ပစ္စည်းတင်ခြင်း
+        function myAlert(msg, type, onConfirm) {
+            const box = document.getElementById('customAlert');
+            document.getElementById('alertMsg').innerText = msg;
+            const btnArea = document.getElementById('alertBtns');
+            btnArea.innerHTML = "";
+            if(type === 'confirm') {
+                btnArea.innerHTML = `
+                    <button class="btn" style="background:#444; color:white;" onclick="closeAlert()">မလုပ်တော့ပါ</button>
+                    <button class="btn add-btn" id="confirmBtn">သေချာသည်</button>`;
+                document.getElementById('confirmBtn').onclick = function() { onConfirm(); closeAlert(); };
+            } else {
+                btnArea.innerHTML = `<button class="btn add-btn" onclick="closeAlert()">ကောင်းပါပြီ</button>`;
+            }
+            box.style.display = 'flex';
+        }
+
+        function closeAlert() { document.getElementById('customAlert').style.display = 'none'; }
+
+        function checkPw() {
+            if(document.getElementById('pwInput').value === correctPw) {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+            } else { myAlert("လျှို့ဝှက်နံပါတ် မှားယွင်းနေပါသည်။", "ok"); }
+        }
+
         function uploadProduct() {
             const name = document.getElementById('pName').value;
             const price = document.getElementById('pPrice').value;
             const img = document.getElementById('pImg').value;
             if(name && price && img) {
-                db.collection("products").add({
-                    name: name, price: price, image_url: img.trim()
-                }).then(() => { alert("တင်ပြီးပါပြီ!"); location.reload(); });
+                db.collection("products").add({ name, price, image_url: img.trim() })
+                .then(() => { myAlert("ပစ္စည်းတင်ခြင်း အောင်မြင်ပါသည်။", "ok", () => location.reload()); });
             }
         }
 
-        // ပစ္စည်းစာရင်းနှင့် ဖျက်ခြင်း
         db.collection("products").onSnapshot((snapshot) => {
             let html = "";
             snapshot.forEach((doc) => {
                 let p = doc.data();
                 html += `<div class="item-card">
-                    <strong>${p.name}</strong> - ${p.price} Ks<br>
-                    <button class="del-btn" onclick="deleteItem('products','${doc.id}')">ပစ္စည်းဖျက်မည်</button>
+                    <div><strong>${p.name}</strong><br><small>${p.price} ကျပ်</small></div>
+                    <button class="del-btn" onclick="askDelete('products','${doc.id}')">ဖျက်မည်</button>
                 </div>`;
             });
             document.getElementById('adminProductList').innerHTML = html;
         });
 
-        // အော်ဒါစစ်ခြင်း
         db.collection("orders").orderBy("time", "desc").onSnapshot((snapshot) => {
             let html = "";
             snapshot.forEach((doc) => {
                 let o = doc.data();
                 html += `<div class="item-card">
-                    <strong>📦 ${o.product}</strong><br>
-                    <div class="order-info">👤 ${o.customer} | 📞 ${o.phone}</div>
-                    <div class="order-info">🏠 ${o.address}</div>
-                    <div class="order-info">⏰ ${o.time}</div>
-                    <button class="del-btn" style="background:#64748b" onclick="deleteItem('orders','${doc.id}')">အော်ဒါဖျက်မည်</button>
+                    <div><strong>📦 ${o.product}</strong><br><small>👤 ${o.customer}</small></div>
+                    <button class="del-btn" style="background:#64748b" onclick="askDelete('orders','${doc.id}')">ဖျက်မည်</button>
                 </div>`;
             });
-            document.getElementById('adminOrderList').innerHTML = html || "အော်ဒါမရှိသေးပါ ဆရာ။";
+            document.getElementById('adminOrderList').innerHTML = html || "အော်ဒါမရှိသေးပါ။";
         });
 
-        function deleteItem(col, id) {
-            if(confirm("ဖျက်မှာ သေချာလား ဆရာ?")) { db.collection(col).doc(id).delete(); }
+        function askDelete(col, id) {
+            myAlert("ဤအရာကို ဖျက်ရန် သေချာပါသလား ဆရာ?", "confirm", () => {
+                db.collection(col).doc(id).delete();
+            });
         }
 
         function showTab(tabId) {
