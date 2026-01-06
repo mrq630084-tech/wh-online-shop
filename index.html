@@ -94,26 +94,126 @@
             messagingSenderId: "297839145890", 
             appId: "1:297839145890:web:f90f862b000e8631a4f8fb" 
         };
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WH PREMIUM SHOP</title>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <style>
+        :root { --gold: #D4AF37; --white-soft: #f8f9fa; --dark-bg: #0a0a0a; --card-bg: #161616; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; transition: 0.4s; overflow-x: hidden; }
+        body.gold-theme { background: radial-gradient(circle at top, #1a1a1a 0%, #050505 100%); color: #eee; }
+        body.white-theme { background: var(--white-soft); color: #333; }
+        .top-bar { display: flex; justify-content: space-between; padding: 5px; align-items: center; }
+        .theme-btn { background: rgba(212,175,55,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 8px 16px; border-radius: 20px; font-size: 0.75rem; cursor: pointer; font-weight: bold; }
+        .shop-header { text-align: center; padding: 20px 0; }
+        .shop-header h2 { font-size: 1.8rem; font-weight: 900; letter-spacing: 2px; margin: 0; color: var(--gold); text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .search-container { padding: 10px; display: flex; justify-content: center; }
+        #searchInput { width: 95%; padding: 14px 20px; border-radius: 30px; border: 1px solid rgba(212,175,55,0.3); background: rgba(255,255,255,0.07); color: inherit; font-size: 0.95rem; outline: none; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 10px; }
+        .card { border-radius: 20px; padding-bottom: 12px; text-align: left; overflow: hidden; position: relative; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .gold-theme .card { background: var(--card-bg); border: 1px solid rgba(212,175,55,0.15); }
+        .white-theme .card { background: #fff; border: 1px solid #eee; }
+        .img-box { width: 100%; aspect-ratio: 1/1; position: relative; cursor: pointer; }
+        .img-box img { width: 100%; height: 100%; object-fit: cover; }
+        .play-badge { position: absolute; bottom: 10px; right: 10px; background: rgba(212,175,55,0.9); color: #000; padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; }
+        .card-info { padding: 12px; }
+        .card h3 { font-size: 0.9rem; margin: 0 0 5px 0; height: 38px; overflow: hidden; font-weight: 600; line-height: 1.3; }
+        .price { font-weight: 800; font-size: 1.1rem; color: var(--gold); }
+        .btn-main { border: none; width: 92%; padding: 12px 0; border-radius: 15px; font-weight: bold; font-size: 0.85rem; cursor: pointer; display: block; margin: 0 auto; transition: 0.3s; text-decoration: none; text-align: center; }
+        .gold-theme .btn-main { background: linear-gradient(135deg, var(--gold), #AA771C); color: #000; }
+        .white-theme .btn-main { background: #1a1a1a; color: #fff; }
+        .viber-btn { background: #7360f2 !important; color: white !important; margin-top: 10px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .modal-content { padding: 30px; border-radius: 30px; width: 88%; max-width: 340px; text-align: center; box-shadow: 0 0 30px rgba(0,0,0,0.5); border: 1px solid rgba(212,175,55,0.2); animation: popUp 0.3s ease; }
+        @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .gold-theme .modal-content { background: #1a1a1a; color: #fff; }
+        .white-theme .modal-content { background: #fff; color: #333; }
+        input { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 15px; border: 1px solid rgba(212,175,55,0.3); background: rgba(255,255,255,0.05); color: inherit; outline: none; }
+        .v-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body class="gold-theme" id="bodyTag">
+
+    <div class="top-bar">
+        <button class="theme-btn" onclick="openModal('checkModal')">🔍 မှာယူမှုမှတ်တမ်း</button>
+        <button class="theme-btn" onclick="toggleTheme()" id="tBtn">⚪ အနုဖြူပြောင်းမည်</button>
+    </div>
+
+    <div class="shop-header"><h2>WH PREMIUM SHOP</h2></div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" onkeyup="searchProduct()" placeholder="🔍 ပစ္စည်းအမည်ဖြင့် ရှာဖွေပါ...">
+    </div>
+
+    <div class="grid" id="productList"></div>
+
+    <div id="videoModal" class="v-modal">
+        <span onclick="closeVideo()" style="position:absolute; top:30px; right:30px; color:#fff; font-size:2.5rem; cursor:pointer;">&times;</span>
+        <div id="videoContainer" style="width: 100%; max-width: 600px; padding: 10px;"></div>
+    </div>
+
+    <div id="detailModal" class="modal"><div class="modal-content">
+        <h3 id="dT" style="color:var(--gold);"></h3>
+        <p id="dD" style="font-size: 0.9rem; opacity: 0.8;"></p>
+        <div id="dP" style="font-weight:900; margin-bottom:20px; font-size:1.4rem; color:var(--gold);"></div>
+        <button class="btn-main" id="goBuy">🛒 အခုပဲ ဝယ်ယူမည်</button>
+        <button onclick="closeModal('detailModal')" style="background:none; border:none; color:inherit; margin-top:15px; opacity:0.6; cursor:pointer;">ပြန်ထွက်မည်</button>
+    </div></div>
+
+    <div id="orderModal" class="modal"><div class="modal-content">
+        <h3 style="color:var(--gold);">📋 မှာယူရန်</h3>
+        <div id="orderSummaryDisplay" style="text-align: left; padding: 12px; background: rgba(212,175,55,0.1); border-radius: 12px; margin-bottom: 15px; font-size: 0.85rem;"></div>
+        <input type="text" id="custN" placeholder="👤 သင့်အမည်">
+        <input type="number" id="custP" placeholder="📞 ဖုန်းနံပါတ်">
+        <input type="text" id="custA" placeholder="📍 ပို့ဆောင်ရမည့် လိပ်စာ">
+        <button class="btn-main" onclick="submitOrder()">✅ အက်ပ်မှ မှာယူမည်</button>
+        <div style="margin: 10px 0; opacity: 0.5; font-size: 0.8rem;">- သို့မဟုတ် -</div>
+        <a href="viber://chat?number=+959402414331" class="btn-main viber-btn">💬 Viber မှ တိုက်ရိုက်မှာမည်</a>
+        <button onclick="closeModal('orderModal')" style="background:none; border:none; color:inherit; margin-top:15px; opacity:0.6; cursor:pointer;">ပယ်ဖျက်မည်</button>
+    </div></div>
+
+    <div id="statusModal" class="modal"><div class="modal-content">
+        <div id="statusIcon" style="font-size: 4rem; margin-bottom: 15px;"></div>
+        <h3 id="statusTitle" style="color:var(--gold); margin-bottom: 10px;"></h3>
+        <p id="statusMsg" style="font-size: 0.95rem; opacity: 0.8; margin-bottom: 25px;"></p>
+        <button class="btn-main" onclick="closeModal('statusModal')" style="width: 150px;">အိုကေ</button>
+    </div></div>
+
+    <div id="checkModal" class="modal"><div class="modal-content">
+        <h3 style="color:var(--gold);">🔍 မှတ်တမ်းစစ်ဆေးခြင်း</h3>
+        <input type="number" id="checkPhone" placeholder="ဖုန်းနံပါတ် ရိုက်ထည့်ပါ">
+        <button class="btn-main" onclick="fetchOrders()">စစ်ဆေးမည်</button>
+        <div id="orderResult" style="margin-top:15px; max-height:200px; overflow-y:auto; text-align:left;"></div>
+        <button onclick="closeModal('checkModal')" style="background:none; border:none; color:inherit; margin-top:15px; opacity:0.6; cursor:pointer;">ပိတ်မည်</button>
+    </div></div>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyBU4Q9G2eyigNWyZVT_dabEFG4fuslwTW4", authDomain: "online-shop-wh.firebaseapp.com", projectId: "online-shop-wh", storageBucket: "online-shop-wh.firebasestorage.app", messagingSenderId: "297839145890", appId: "1:297839145890:web:f90f862b000e8631a4f8fb" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const botToken = '8456181519:AAHcGtjDpkCV1Prg3zZRnCyhImRJK3eEst8';
+        const chatId = '7470610736';
         let selP = "", selPrice = "";
 
-        function showToast(txt) { const t = document.getElementById('toast'); t.innerText = txt; t.style.top = '30px'; setTimeout(() => t.style.top = '-100px', 3000); }
-        
-        function toggleTheme() { 
-            const b = document.getElementById('bodyTag'), t = document.getElementById('tBtn'); 
-            if(b.classList.contains('gold-theme')) { b.classList.replace('gold-theme','white-theme'); t.innerText="🟡 ရွှေရောင်ပြောင်းမည်"; } 
-            else { b.classList.replace('white-theme','gold-theme'); t.innerText="⚪ အနုဖြူပြောင်းမည်"; } 
+        // UI Alert ကို ခေါ်သုံးမည့် Function
+        function uiAlert(title, msg, icon) {
+            document.getElementById('statusTitle').innerText = title;
+            document.getElementById('statusMsg').innerText = msg;
+            document.getElementById('statusIcon').innerText = icon;
+            openModal('statusModal');
         }
 
         db.collection("products").onSnapshot(s => {
             let l = document.getElementById('productList'); l.innerHTML = "";
             s.forEach(d => {
                 let p = d.data();
-                let card = document.createElement('div');
-                card.className = "card";
-                card.innerHTML = `
-                    <div class="img-box">
+                l.innerHTML += `
+                <div class="card">
+                    <div class="img-box" onclick="openDetail('${p.name.replace(/'/g, "\\'")}','${p.price}','${(p.detail || "အသေးစိတ်မရှိသေးပါ။").replace(/'/g, "\\'")}')">
                         <img src="${p.image_url}">
                         ${p.video_id ? `<div class="play-badge" onclick="event.stopPropagation(); playVideo('${p.video_id}')">▶ ဗီဒီယို</div>` : ""}
                     </div>
@@ -121,66 +221,47 @@
                         <h3>${p.name}</h3>
                         <div class="price">${p.price} Ks</div>
                     </div>
-                `;
-                let btn = document.createElement('button');
-                btn.className = "btn-main"; btn.innerText = "ဝယ်ယူမည်";
-                btn.onclick = () => { selP = p.name; selPrice = p.price; document.getElementById('orderSummary').innerHTML = `📦 <b>${p.name}</b><br>💰 <b>${p.price} Ks</b>`; openModal('orderModal'); };
-                card.appendChild(btn);
-                l.appendChild(card);
+                    <button class="btn-main" onclick="openOrder('${p.name.replace(/'/g, "\\'")}','${p.price}')">ဝယ်ယူမည်</button>
+                </div>`;
             });
         });
 
+        function playVideo(url) { 
+            if(!url) return uiAlert("သတိပေးချက်", "ဗီဒီယို မရှိပါ သို့မဟုတ် Link မှားနေပါသည်!", "⚠️");
+            document.getElementById('videoContainer').innerHTML = `<video controls autoplay style="width:100%; border-radius:15px; border:2px solid var(--gold);"><source src="${url}" type="video/mp4">ဗီဒီယိုဖွင့်မရပါ</video>`;
+            openModal('videoModal'); 
+        }
+
         function submitOrder() {
-    const n = document.getElementById('custN'), 
-          ph = document.getElementById('custP'), 
-          a = document.getElementById('custA');
-
-    if(n.value && ph.value && a.value) {
-        db.collection("orders").add({ 
-            product: selP, 
-            price: selPrice, 
-            customer: n.value, 
-            phone: ph.value, 
-            address: a.value, 
-            time: new Date().toLocaleString() 
-        })
-        .then(() => { 
-            closeModal('orderModal'); 
-            showToast("✅ မှာယူမှု အောင်မြင်ပါသည်!");
-            
-            // --- ဒီအပိုင်းလေး ထပ်ထည့်ပေးပါ ဆရာ ---
-            n.value = "";  // အမည်ကို ဖျက်မယ်
-            ph.value = ""; // ဖုန်းကို ဖျက်မယ်
-            a.value = "";  // လိပ်စာကို ဖျက်မယ်
-            // ----------------------------------
-        });
-    } else { 
-        showToast("⚠️ အချက်အလက်ဖြည့်ပါ"); 
-    }
-}
-
+            const n = document.getElementById('custN').value, p = document.getElementById('custP').value, a = document.getElementById('custA').value;
+            if(n && p && a) {
+                const o = { product: selP, price: selPrice, customer: n, phone: p, address: a, time: new Date().toLocaleString() };
+                db.collection("orders").add(o).then(() => {
+                    const msg = `🛒 *Order သစ်*\n📦 ${o.product}\n💰 ${o.price} Ks\n👤 ${o.customer}\n📞 ${o.phone}\n📍 ${o.address}`;
+                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`);
+                    closeModal('orderModal');
+                    uiAlert("မှာယူမှု အောင်မြင်ပါသည်", "လူကြီးမင်း၏ မှာယူမှုကို လက်ခံရရှိပါပြီ။ မကြာမီ ဆက်သွယ်ပေးပါမည်။", "🎉");
+                    document.getElementById('custN').value = ""; document.getElementById('custP').value = ""; document.getElementById('custA').value = "";
+                });
+            } else { uiAlert("သတိပေးချက်", "အချက်အလက်များကို ပြည့်စုံအောင် ဖြည့်ပေးပါရန်!", "⚠️"); }
+        }
 
         function fetchOrders() {
             const ph = document.getElementById('checkPhone').value;
-            if(!ph) return showToast("⚠️ ဖုန်းနံပါတ်ထည့်ပါ");
+            if(!ph) return uiAlert("သတိပေးချက်", "စစ်ဆေးရန် ဖုန်းနံပါတ် ထည့်ပေးပါ!", "⚠️");
             db.collection("orders").where("phone", "==", ph).get().then(s => {
-                let h = ""; s.forEach(d => { let o = d.data(); h += `<div style="padding:10px; border-bottom:1px solid #444;">📦 ${o.product}<br><small>${o.time}</small></div>`; });
-                document.getElementById('orderResult').innerHTML = h || "မှတ်တမ်းမရှိပါ။";
+                let h = ""; s.forEach(d => { let o = d.data(); h += `<div style="padding:12px; border-bottom:1px solid rgba(212,175,55,0.2);">📦 <b>${o.product}</b><br><small style="opacity:0.7;">${o.time}</small></div>`; });
+                document.getElementById('orderResult').innerHTML = h || "<p style='text-align:center; opacity:0.5; padding:20px;'>မှာယူထားသည့် မှတ်တမ်း မရှိသေးပါ။</p>";
             });
         }
 
-        function searchProduct() {
-            let input = document.getElementById('searchInput').value.toUpperCase(), cards = document.getElementsByClassName('card');
-            for (let i = 0; i < cards.length; i++) { 
-                let txt = cards[i].getElementsByTagName('h3')[0].innerText;
-                cards[i].style.display = txt.toUpperCase().indexOf(input) > -1 ? "" : "none";
-            }
-        }
-
+        function toggleTheme() { const b = document.getElementById('bodyTag'); b.classList.toggle('white-theme'); b.classList.toggle('gold-theme'); }
+        function openDetail(n,p,d) { selP=n; selPrice=p; document.getElementById('dT').innerText=n; document.getElementById('dD').innerText=d; document.getElementById('dP').innerText=p+" Ks"; openModal('detailModal'); document.getElementById('goBuy').onclick=()=>{ closeModal('detailModal'); openOrder(n,p); }; }
+        function openOrder(n,p) { selP=n; selPrice=p; document.getElementById('orderSummaryDisplay').innerHTML=`📦 <b>${n}</b><br>💰 <b>${p} Ks</b>`; openModal('orderModal'); }
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function playVideo(url) { document.getElementById('videoContainer').innerHTML = `<video controls autoplay loop style="width:100%"><source src="${url}" type="video/mp4"></video>`; document.getElementById('videoModal').style.display = 'flex'; }
         function closeVideo() { document.getElementById('videoModal').style.display = 'none'; document.getElementById('videoContainer').innerHTML = ""; }
+        function searchProduct() { let input = document.getElementById('searchInput').value.toUpperCase(); let cards = document.getElementsByClassName('card'); for (let i = 0; i < cards.length; i++) { let txt = cards[i].getElementsByTagName('h3')[0].innerText; cards[i].style.display = txt.toUpperCase().indexOf(input) > -1 ? "" : "none"; } }
     </script>
 </body>
 </html>
