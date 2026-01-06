@@ -3,149 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WH Premium Shop</title>
-   
+    <title>WH PREMIUM SHOP</title>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <style>
-        :root { --neon-green: #00ff88; --neon-purple: #bc13fe; --bg: #0b0f1a; --card-bg: #161b2c; }
-        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; padding: 0; }
-        
-        /* Search Bar & Header */
-        .header { padding: 40px 20px 20px; text-align: center; }
-        .search-box {
-            position: relative; max-width: 400px; margin: 0 auto;
-            background: rgba(255,255,255,0.05); border-radius: 25px;
-            border: 1px solid #334155; display: flex; align-items: center; padding: 5px 20px;
-        }
-        .search-box input {
-            background: none; border: none; color: white; padding: 12px; width: 100%; outline: none;
-        }
-        .search-box i { color: var(--neon-purple); margin-right: 10px; }
-
-        /* Category Chips */
-        .categories { display: flex; gap: 10px; overflow-x: auto; padding: 20px; justify-content: center; }
-        .chip { border: 1px solid var(--neon-green); padding: 5px 15px; border-radius: 15px; font-size: 0.8rem; color: var(--neon-green); }
-
-        /* Product Card UI (ပုံထဲကအတိုင်း) */
-        .container { padding: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .card { 
-            background: var(--card-bg); border-radius: 20px; padding: 10px;
-            border: 1px solid #2d3748; box-shadow: 0 0 15px rgba(0,255,136,0.1);
-        }
-        .card img { 
-            width: 100%; height: 160px; object-fit: contain; 
-            filter: drop-shadow(0 0 10px rgba(188, 19, 254, 0.3)); /* ပုံကို Glow ပေးခြင်း */
-        }
-        .product-name { font-size: 1rem; margin: 10px 0 5px; font-weight: bold; }
-        .price { color: var(--neon-green); font-size: 1.1rem; margin-bottom: 15px; }
-        
-        /* Buttons */
-        .btn { width: 100%; padding: 10px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; font-size: 0.8rem; }
-        .ms-btn { background: var(--neon-green); color: black; }
-        .vb-btn { background: var(--neon-purple); color: white; }
-
-        /* Modal Settings */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 999; }
-        .modal-content { background: var(--card-bg); width: 85%; margin: 100px auto; padding: 20px; border-radius: 20px; border: 1px solid var(--neon-green); }
-        input, textarea { width: 100%; padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid #334155; background: #0b0f1a; color: white; box-sizing: border-box; }
+        :root { --gold: #D4AF37; --white-soft: #f8f9fa; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; transition: 0.4s; overflow-x: hidden; }
+        body.gold-theme { background: #050505; color: #eee; }
+        body.white-theme { background: var(--white-soft); color: #333; }
+        .top-bar { display: flex; justify-content: space-between; padding: 5px; align-items: center; }
+        .theme-btn { background: none; border: 1px solid currentColor; color: inherit; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; cursor: pointer; }
+        .shop-header { text-align: center; padding: 15px 0; color: var(--gold); }
+        .search-container { padding: 10px; display: flex; justify-content: center; }
+        #searchInput { width: 90%; padding: 12px 20px; border-radius: 25px; border: 1px solid rgba(212,175,55,0.3); background: rgba(255,255,255,0.05); color: inherit; outline: none; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 5px; }
+        /* ပစ္စည်း Card ညီအောင် ပြင်ဆင်ချက် */
+        .card { border-radius: 18px; padding-bottom: 12px; text-align: left; overflow: hidden; display: flex; flex-direction: column; transition: 0.3s; }
+        .gold-theme .card { background: #121212; border: 1px solid rgba(212,175,55,0.1); }
+        .white-theme .card { background: #fff; border: 1px solid #eee; }
+        .img-box { width: 100%; aspect-ratio: 1/1; position: relative; }
+        .img-box img { width: 100%; height: 100%; object-fit: cover; }
+        .play-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; }
+        .card-info { padding: 10px; flex-grow: 1; }
+        .card h3 { font-size: 0.85rem; margin: 0 0 5px 0; height: 35px; overflow: hidden; }
+        .price { font-weight: 800; font-size: 1.05rem; color: var(--gold); }
+        .btn-main { border: none; width: 90%; padding: 10px 0; border-radius: 12px; font-weight: bold; cursor: pointer; display: block; margin: 8px auto; text-align: center; text-decoration: none; }
+        .gold-theme .btn-main { background: linear-gradient(135deg, var(--gold), #AA771C); color: #000; }
+        .white-theme .btn-main { background: #1a1a1a; color: #fff; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal-content { padding: 30px; border-radius: 30px; width: 85%; max-width: 320px; text-align: center; border: 1px solid var(--gold); }
+        .gold-theme .modal-content { background: #1a1a1a; color: #fff; }
+        .white-theme .modal-content { background: #fff; color: #333; }
+        input { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #444; background: rgba(255,255,255,0.05); color: inherit; box-sizing: border-box; outline: none; }
+        #toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #000; padding: 12px 25px; border-radius: 50px; font-weight: bold; transition: 0.5s; z-index: 10000; }
+        .v-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; align-items: center; justify-content: center; }
     </style>
 </head>
-<body>
+<body class="gold-theme" id="bodyTag">
 
-    <div class="header">
-        <div class="search-box">
-            <span>🔍</span>
-            <input type="text" id="searchBar" onkeyup="filterProducts()" placeholder="WH Online Shop...">
-        </div>
+    <div id="toast"></div>
+
+    <div class="top-bar">
+        <button class="theme-btn" onclick="openModal('checkModal')">🔍 မှာယူမှုမှတ်တမ်း</button>
+        <button class="theme-btn" onclick="toggleTheme()" id="tBtn">⚪ အနုဖြူပြောင်းမည်</button>
     </div>
 
-    <div class="categories">
-        <div class="chip">နာရီ</div>
-        <div class="chip">ဖုန်း</div>
-        <div class="chip">အဝတ်အထည်</div>
+    <div class="shop-header"><h2>WH PREMIUM SHOP</h2></div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" onkeyup="searchProduct()" placeholder="🔍 ပစ္စည်းအမည်ဖြင့် ရှာပါ...">
     </div>
 
-    <div id="product-list" class="container">
-        </div>
+    <div class="grid" id="productList"></div>
 
     <div id="orderModal" class="modal">
         <div class="modal-content">
-            <h3 id="modalTitle" style="color:var(--neon-green)">မှာယူရန်</h3>
-            <input type="text" id="cName" placeholder="အမည်">
-            <input type="tel" id="cPhone" placeholder="ဖုန်းနံပါတ်">
-            <textarea id="cAddress" placeholder="လိပ်စာ"></textarea>
-            <button class="btn ms-btn" onclick="sendOrder()">Messenger မှ မှာယူမည်</button>
-            <button class="btn" style="background:none; color:gray;" onclick="closeModal()">မမှာတော့ပါ</button>
+            <h3 style="color:var(--gold);">📋 မှာယူရန်</h3>
+            <div id="orderSummary" style="margin-bottom:15px; font-size:0.9rem;"></div>
+            <input type="text" id="custN" placeholder="👤 သင့်အမည်">
+            <input type="number" id="custP" placeholder="📞 ဖုန်းနံပါတ်">
+            <input type="text" id="custA" placeholder="📍 လိပ်စာ">
+            <button class="btn-main" onclick="submitOrder()">✅ အတည်ပြုမည်</button>
+            <div style="margin:10px 0; opacity:0.5;">- OR -</div>
+            <a href="viber://chat?number=+959402414331" class="btn-main" style="background:#7360f2 !important; color:#fff !important;">💬 Viber မှ မှာယူမည်</a>
+            <button onclick="closeModal('orderModal')" style="background:none; border:none; color:inherit; margin-top:15px; opacity:0.6;">ပိတ်မည်</button>
         </div>
     </div>
 
+    <div id="checkModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color:var(--gold);">🔍 မှာယူမှုမှတ်တမ်း</h3>
+            <input type="number" id="checkPhone" placeholder="ဖုန်းနံပါတ် ရိုက်ထည့်ပါ">
+            <button class="btn-main" onclick="fetchOrders()">စစ်ဆေးမည်</button>
+            <div id="orderResult" style="margin-top:15px; max-height:200px; overflow-y:auto; text-align:left; font-size:0.85rem;"></div>
+            <button onclick="closeModal('checkModal')" style="background:none; border:none; color:inherit; margin-top:15px; opacity:0.6;">ပိတ်မည်</button>
+        </div>
+    </div>
+
+    <div id="videoModal" class="v-modal">
+        <span onclick="closeVideo()" style="position:absolute; top:20px; right:20px; color:#fff; font-size:2.5rem; cursor:pointer;">&times;</span>
+        <div id="videoContainer" style="width:100%"></div>
+    </div>
+
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBU4Q9G2eyigNWyZVT_dabEFG4fuslwTW4",
-            authDomain: "online-shop-wh.firebaseapp.com",
-            projectId: "online-shop-wh",
-            storageBucket: "online-shop-wh.firebasestorage.app",
-            messagingSenderId: "297839145890",
-            appId: "1:297839145890:web:f90f862b000e8631a4f8fb"
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBU4Q9G2eyigNWyZVT_dabEFG4fuslwTW4", 
+            authDomain: "online-shop-wh.firebaseapp.com", 
+            projectId: "online-shop-wh", 
+            storageBucket: "online-shop-wh.firebasestorage.app", 
+            messagingSenderId: "297839145890", 
+            appId: "1:297839145890:web:f90f862b000e8631a4f8fb" 
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        let selP = "", selPrice = "";
 
-        let allProducts = [];
-        let activeItem = "";
+        function showToast(txt) { const t = document.getElementById('toast'); t.innerText = txt; t.style.top = '30px'; setTimeout(() => t.style.top = '-100px', 3000); }
+        
+        function toggleTheme() { 
+            const b = document.getElementById('bodyTag'), t = document.getElementById('tBtn'); 
+            if(b.classList.contains('gold-theme')) { b.classList.replace('gold-theme','white-theme'); t.innerText="🟡 ရွှေရောင်ပြောင်းမည်"; } 
+            else { b.classList.replace('white-theme','gold-theme'); t.innerText="⚪ အနုဖြူပြောင်းမည်"; } 
+        }
 
-        // Database မှ ပစ္စည်းများ ဆွဲယူခြင်း
-        db.collection("products").onSnapshot((snapshot) => {
-            allProducts = [];
-            snapshot.forEach(doc => allProducts.push(doc.data()));
-            displayProducts(allProducts);
+        db.collection("products").onSnapshot(s => {
+            let l = document.getElementById('productList'); l.innerHTML = "";
+            s.forEach(d => {
+                let p = d.data();
+                let card = document.createElement('div');
+                card.className = "card";
+                card.innerHTML = `
+                    <div class="img-box">
+                        <img src="${p.image_url}">
+                        ${p.video_id ? `<div class="play-badge" onclick="event.stopPropagation(); playVideo('${p.video_id}')">▶ ဗီဒီယို</div>` : ""}
+                    </div>
+                    <div class="card-info">
+                        <h3>${p.name}</h3>
+                        <div class="price">${p.price} Ks</div>
+                    </div>
+                `;
+                let btn = document.createElement('button');
+                btn.className = "btn-main"; btn.innerText = "ဝယ်ယူမည်";
+                btn.onclick = () => { selP = p.name; selPrice = p.price; document.getElementById('orderSummary').innerHTML = `📦 <b>${p.name}</b><br>💰 <b>${p.price} Ks</b>`; openModal('orderModal'); };
+                card.appendChild(btn);
+                l.appendChild(card);
+            });
         });
 
-        function displayProducts(products) {
-            let html = "";
-            products.forEach(p => {
-                html += `
-                    <div class="card">
-                        <img src="${p.image_url}">
-                        <div class="product-name">${p.name}</div>
-                        <div class="price">${Number(p.price).toLocaleString()} Ks</div>
-                        <button class="btn ms-btn" onclick="openOrder('${p.name}')">ဝယ်ယူမည်</button>
-                    </div>`;
+        function submitOrder() {
+    const n = document.getElementById('custN'), 
+          ph = document.getElementById('custP'), 
+          a = document.getElementById('custA');
+
+    if(n.value && ph.value && a.value) {
+        db.collection("orders").add({ 
+            product: selP, 
+            price: selPrice, 
+            customer: n.value, 
+            phone: ph.value, 
+            address: a.value, 
+            time: new Date().toLocaleString() 
+        })
+        .then(() => { 
+            closeModal('orderModal'); 
+            showToast("✅ မှာယူမှု အောင်မြင်ပါသည်!");
+            
+            // --- ဒီအပိုင်းလေး ထပ်ထည့်ပေးပါ ဆရာ ---
+            n.value = "";  // အမည်ကို ဖျက်မယ်
+            ph.value = ""; // ဖုန်းကို ဖျက်မယ်
+            a.value = "";  // လိပ်စာကို ဖျက်မယ်
+            // ----------------------------------
+        });
+    } else { 
+        showToast("⚠️ အချက်အလက်ဖြည့်ပါ"); 
+    }
+}
+
+
+        function fetchOrders() {
+            const ph = document.getElementById('checkPhone').value;
+            if(!ph) return showToast("⚠️ ဖုန်းနံပါတ်ထည့်ပါ");
+            db.collection("orders").where("phone", "==", ph).get().then(s => {
+                let h = ""; s.forEach(d => { let o = d.data(); h += `<div style="padding:10px; border-bottom:1px solid #444;">📦 ${o.product}<br><small>${o.time}</small></div>`; });
+                document.getElementById('orderResult').innerHTML = h || "မှတ်တမ်းမရှိပါ။";
             });
-            document.getElementById("product-list").innerHTML = html;
         }
 
-        // မှန်ဘီလူး ရှာဖွေရေး အလုပ်လုပ်ရန်
-        function filterProducts() {
-            let val = document.getElementById("searchBar").value.toLowerCase();
-            let filtered = allProducts.filter(p => p.name.toLowerCase().includes(val));
-            displayProducts(filtered);
+        function searchProduct() {
+            let input = document.getElementById('searchInput').value.toUpperCase(), cards = document.getElementsByClassName('card');
+            for (let i = 0; i < cards.length; i++) { 
+                let txt = cards[i].getElementsByTagName('h3')[0].innerText;
+                cards[i].style.display = txt.toUpperCase().indexOf(input) > -1 ? "" : "none";
+            }
         }
 
-        function openOrder(name) {
-            activeItem = name;
-            document.getElementById("modalTitle").innerText = name;
-            document.getElementById("orderModal").style.display = "block";
-        }
-
-        function closeModal() { document.getElementById("orderModal").style.display = "none"; }
-
-        function sendOrder() {
-            const name = document.getElementById("cName").value;
-            const phone = document.getElementById("cPhone").value;
-            const addr = document.getElementById("cAddress").value;
-
-            if(name && phone && addr) {
-                // အော်ဒါသိမ်းခြင်း
-                db.collection("orders").add({
-                    product: activeItem, customer: name, phone: phone, address: addr, time: new Date().toLocaleString()
-                }).then(() => {
-                    const msg = `အော်ဒါတင်လိုပါသည်%0Aပစ္စည်း: ${activeItem}%0Aအမည်: ${name}%0Aဖုန်း: ${phone}%0Aလိပ်စာ: ${addr}`;
-                    window.location.href = `https://m.me/131019win?text=${msg}`;
-                });
-            } else { alert("အချက်အလက် စုံအောင်ဖြည့်ပါ ဆရာ"); }
-        }
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function playVideo(url) { document.getElementById('videoContainer').innerHTML = `<video controls autoplay loop style="width:100%"><source src="${url}" type="video/mp4"></video>`; document.getElementById('videoModal').style.display = 'flex'; }
+        function closeVideo() { document.getElementById('videoModal').style.display = 'none'; document.getElementById('videoContainer').innerHTML = ""; }
     </script>
 </body>
 </html>
