@@ -75,86 +75,256 @@
         const firebaseConfig = {
             apiKey: "AIzaSyBU4Q9G2eyigNWyZVT_dabEFG4fuslwTW4",
             authDomain: "online-shop-wh.firebaseapp.com",
-            projectId: "online-shop-wh",
-            storageBucket: "online-shop-wh.firebasestorage.app",
-            messagingSenderId: "297839145890",
-            appId: "1:297839145890:web:f90f862b000e8631a4f8fb"
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👑 WH PRO ADMIN</title>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <style>
+        :root { --gold: #d4af37; --emerald: #10b981; --bg: #061f18; --card: #0a2e24; --text: #ffffff; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; text-align: center; }
+        #toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: linear-gradient(45deg, var(--gold), #aa771c); color: #000; padding: 15px 30px; border-radius: 50px; font-weight: bold; transition: 0.5s; z-index: 30000; box-shadow: 0 5px 20px rgba(0,0,0,0.4); border: 1px solid #fff; }
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 20000; }
+        .login-box { background: var(--card); padding: 30px; border-radius: 20px; border: 2px solid var(--gold); width: 85%; max-width: 350px; }
+        .tab-box { display: flex; gap: 8px; margin: 20px 0; }
+        .tab-btn { flex: 1; padding: 12px 5px; border: 1px solid var(--emerald); border-radius: 12px; background: transparent; color: var(--emerald); font-weight: bold; cursor: pointer; font-size: 13px; }
+        .tab-btn.active { background: var(--emerald); color: #000; box-shadow: 0 0 15px var(--emerald); }
+        .section { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid rgba(212,175,55,0.2); margin-bottom: 20px; }
+        input, textarea { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #1a4d3f; border-radius: 10px; background: #041611; color: #fff; box-sizing: border-box; outline: none; }
+        .add-btn { background: linear-gradient(90deg, var(--emerald), var(--gold)); color: #000; width: 100%; border: none; padding: 16px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .card { background: #08261e; border-left: 5px solid var(--gold); padding: 15px; border-radius: 12px; margin-top: 15px; text-align: left; position: relative; color: #fff; font-size: 0.9rem; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .item { background: #08261e; padding: 10px; border-radius: 15px; border: 1px solid #1a4d3f; text-align: center; color: #fff; }
+        .item img { width: 100%; height: 100px; object-fit: cover; border-radius: 10px; }
+        .del-btn { background: #5a0000; color: #fff; border: none; padding: 8px; border-radius: 8px; width: 100%; margin-top: 10px; cursor: pointer; font-size: 11px; }
+        .hidden { display: none; }
+        #status { font-size: 13px; color: var(--emerald); display: none; margin-bottom: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="loginOverlay">
+        <div class="login-box">
+            <h3>🔐 Admin Login</h3>
+            <input type="password" id="adminPw" placeholder="စကားဝှက် ရိုက်ထည့်ပါ">
+            <button class="add-btn" onclick="checkLogin()">ဝင်မည်</button>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+    <h2>👑 WH PRO ADMIN</h2>
+
+    <div class="tab-box">
+        <button id="t1" class="tab-btn active" onclick="switchTab('upload')">ပစ္စည်းတင်ရန်</button>
+        <button id="t2" class="tab-btn" onclick="switchTab('orders')">အော်ဒါစစ်ရန်</button>
+        <button id="t3" class="tab-btn" onclick="switchTab('manage')">စာရင်းဖျက်ရန်</button>
+    </div>
+
+    <div id="uploadSection" class="section">
+        <input type="text" id="pName" placeholder="ပစ္စည်းအမည်">
+        <input type="number" id="pPrice" placeholder="ဈေးနှုန်း">
+        <textarea id="pDetail" placeholder="အသေးစိတ်အချက်အလက်" rows="3"></textarea>
+        <div style="text-align:left; font-size:12px; color:var(--gold);">📸 ပစ္စည်းပုံ (Required)</div>
+        <input type="file" id="pImgFile" accept="image/*">
+        <div style="text-align:left; font-size:12px; color:var(--gold);">🎥 ဗီဒီယို (Optional)</div>
+        <input type="file" id="pVidFile" accept="video/*">
+        <div id="status">⏳ တင်နေသည်... ခဏစောင့်ပါ ဆရာ</div>
+        <button id="addBtn" class="add-btn" onclick="uploadAll()">Add to Shop</button>
+    </div>
+
+    <div id="orderSection" class="section hidden">
+        <h3 style="color:var(--gold)">📋 လက်ခံရရှိသော အော်ဒါများ</h3>
+        <div id="orderList">အော်ဒါများ ဆွဲယူနေသည်...</div>
+    </div>
+
+    <div id="manageSection" class="section hidden">
+        <h3 style="color:var(--gold)">📦 ပစ္စည်းစာရင်း စီမံရန်</h3>
+        <div id="productList" class="grid">ပစ္စည်းများ ဆွဲယူနေသည်...</div>
+    </div>
+
+    <script>
+        const firebaseConfig = { 
+            apiKey: "AIzaSyBU4Q9G2eyigNWyZVT_dabEFG4fuslwTW4", 
+            authDomain: "online-shop-wh.firebaseapp.com", 
+            projectId: "online-shop-wh", 
+            storageBucket: "online-shop-wh.firebasestorage.app", 
+            messagingSenderId: "297839145890", 
+            appId: "1:297839145890:web:f90f862b000e8631a4f8fb" 
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        function myAlert(msg, type, onConfirm) {
-            const box = document.getElementById('customAlert');
-            document.getElementById('alertMsg').innerText = msg;
-            const btnArea = document.getElementById('alertBtns');
-            btnArea.innerHTML = "";
-            if(type === 'confirm') {
-                btnArea.innerHTML = `
-                    <button class="btn" style="background:#444; color:white;" onclick="closeAlert()">မလုပ်တော့ပါ</button>
-                    <button class="btn add-btn" id="confirmBtn">သေချာသည်</button>`;
-                document.getElementById('confirmBtn').onclick = function() { onConfirm(); closeAlert(); };
-            } else {
-                btnArea.innerHTML = `<button class="btn add-btn" onclick="closeAlert()">ကောင်းပါပြီ</button>`;
-            }
-            box.style.display = 'flex';
+        const CLOUDINARY_NAME = "djw6jldfb"; 
+        const CLOUDINARY_PRESET = "wh_premium_preset";
+
+        function checkLogin() {
+            if(document.getElementById('adminPw').value === "131019") {
+                document.getElementById('loginOverlay').style.display = "none";
+                showToast("🔓 ကြိုဆိုပါတယ် ဆရာ!");
+            } else { showToast("⚠️ စကားဝှက် မှားနေပါသည်"); }
         }
 
-        function closeAlert() { document.getElementById('customAlert').style.display = 'none'; }
-
-        function checkPw() {
-            if(document.getElementById('pwInput').value === correctPw) {
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('adminPanel').style.display = 'block';
-            } else { myAlert("လျှို့ဝှက်နံပါတ် မှားယွင်းနေပါသည်။", "ok"); }
+        function showToast(txt) {
+            const t = document.getElementById('toast');
+            t.innerText = txt; t.style.top = '30px';
+            setTimeout(() => t.style.top = '-100px', 3000);
         }
 
-        function uploadProduct() {
+        async function uploadAll() {
             const name = document.getElementById('pName').value;
             const price = document.getElementById('pPrice').value;
-            const img = document.getElementById('pImg').value;
-            if(name && price && img) {
-                db.collection("products").add({ name, price, image_url: img.trim() })
-                .then(() => { myAlert("ပစ္စည်းတင်ခြင်း အောင်မြင်ပါသည်။", "ok", () => location.reload()); });
+            const imgFile = document.getElementById('pImgFile').files[0];
+            const vidFile = document.getElementById('pVidFile').files[0];
+            if(!name || !price || !imgFile) return showToast("⚠️ အချက်အလက် ဖြည့်ပါ ဆရာ");
+
+            const btn = document.getElementById('addBtn');
+            const status = document.getElementById('status');
+            btn.disabled = true; status.style.display = "block";
+            let imgUrl = "", vidUrl = "";
+
+            try {
+                status.innerText = "⏳ ဓာတ်ပုံတင်နေပါသည်...";
+                const imgData = new FormData();
+                imgData.append("file", imgFile);
+                imgData.append("upload_preset", CLOUDINARY_PRESET);
+                const imgRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_NAME}/image/upload`, { method: "POST", body: imgData });
+                imgUrl = (await imgRes.json()).secure_url;
+
+                if(vidFile) {
+                    status.innerText = "⏳ ဗီဒီယိုတင်နေပါသည်...";
+                    const vidData = new FormData();
+                    vidData.append("file", vidFile);
+                    vidData.append("upload_preset", CLOUDINARY_PRESET);
+                    const vidRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_NAME}/video/upload`, { method: "POST", body: vidData });
+                    vidUrl = (await vidRes.json()).secure_url;
+                }
+
+                await db.collection("products").add({
+                    name, price, image_url: imgUrl, video_id: vidUrl || "",
+                    detail: document.getElementById('pDetail').value,
+                    time: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                showToast("✅ ပစ္စည်းတင်ခြင်း အောင်မြင်ပါသည်!");
+                setTimeout(() => location.reload(), 2000);
+            } catch (e) {
+                showToast("❌ တစ်ခုခု မှားယွင်းသွားပါသည်");
+                btn.disabled = false; status.style.display = "none";
             }
         }
 
-        db.collection("products").onSnapshot((snapshot) => {
-            let html = "";
-            snapshot.forEach((doc) => {
-                let p = doc.data();
-                html += `<div class="item-card">
-                    <div><strong>${p.name}</strong><br><small>${p.price} ကျပ်</small></div>
-                    <button class="del-btn" onclick="askDelete('products','${doc.id}')">ဖျက်မည်</button>
-                </div>`;
-            });
-            document.getElementById('adminProductList').innerHTML = html;
-        });
+         function syncData() {
+            // Orders Sync Fix
+            db.collection("orders").orderBy("time", "desc").onSnapshot(snap => {
+                let orderListDiv = document.getElementById('orderList');
+                orderListDiv.innerHTML = ""; // အဟောင်းတွေကို အရင်ဖျက်
 
-        db.collection("orders").orderBy("time", "desc").onSnapshot((snapshot) => {
-            let html = "";
-            snapshot.forEach((doc) => {
-                let o = doc.data();
-                html += `<div class="item-card">
-                    <div><strong>📦 ${o.product}</strong><br><small>👤 ${o.customer}</small></div>
-                    <button class="del-btn" style="background:#64748b" onclick="askDelete('orders','${doc.id}')">ဖျက်မည်</button>
-                </div>`;
-            });
-            document.getElementById('adminOrderList').innerHTML = html || "အော်ဒါမရှိသေးပါ။";
-        });
+                if (snap.empty) {
+                    orderListDiv.innerHTML = "<div style='opacity:0.5; margin-top:20px;'>အော်ဒါမရှိသေးပါ။</div>";
+                } else {
+                    snap.forEach(doc => {
+                        let o = doc.data();
+                        let docId = doc.id; // Document ID ကို သေချာဖမ်းယူ
 
-        function askDelete(col, id) {
-            myAlert("ဤအရာကို ဖျက်ရန် သေချာပါသလား ဆရာ?", "confirm", () => {
-                db.collection(col).doc(id).delete();
+                        let card = document.createElement('div');
+                        card.className = "card";
+                        card.innerHTML = `
+                            <div style="color:var(--gold); font-weight:bold; border-bottom:1px solid #1a4d3f; padding-bottom:5px; margin-bottom:8px;">📦 ${o.product || 'အမည်မရှိပစ္စည်း'}</div>
+                            👤 ဝယ်သူ: ${o.customer || 'မသိရ'}<br>
+                            📞 ဖုန်း: ${o.phone || 'မရှိ'}<br>
+                            📍 လိပ်စာ: ${o.address || 'မရှိ'}<br>
+                            ⏰ အချိန်: <span style="font-size:11px; opacity:0.8; color:var(--emerald);">${o.time || '-'}</span><br>
+                        `;
+
+                        // ဖျက်တဲ့ခလုတ်ကို JS ကနေ တိုက်ရိုက် Create လုပ်ပြီး Function နဲ့ ချိတ်
+                        let delBtn = document.createElement('button');
+                        delBtn.className = "del-btn";
+                        delBtn.innerText = "🗑️ အော်ဒါဖျက်မည်";
+                        delBtn.onclick = function() {
+                            deleteDoc('orders', docId);
+                        };
+
+                        card.appendChild(delBtn);
+                        orderListDiv.appendChild(card);
+                    });
+                }
+            });
+
+            // Products Sync
+            db.collection("products").onSnapshot(snap => {
+                let productListDiv = document.getElementById('productList');
+                productListDiv.innerHTML = "";
+                snap.forEach(doc => {
+                    let p = doc.data();
+                    let docId = doc.id;
+
+                    let item = document.createElement('div');
+                    item.className = "item";
+                    item.innerHTML = `
+                        <img src="${p.image_url}">
+                        <div style="font-size:11px; margin:5px 0; font-weight:bold;">${p.name}</div>
+                    `;
+
+                    let delBtn = document.createElement('button');
+                    delBtn.className = "del-btn";
+                    delBtn.innerText = "🗑️ ဖျက်မည်";
+                    delBtn.onclick = function() {
+                        deleteDoc('products', docId);
+                    };
+
+                    item.appendChild(delBtn);
+                    productListDiv.appendChild(item);
+                });
             });
         }
 
-        function showTab(tabId) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            if(tabId === 'upload') document.getElementById('b1').classList.add('active');
-            else document.getElementById('b2').classList.add('active');
+        // ဖျက်တဲ့ Function ကို ပိုပြီး တိကျအောင် ပြင်ဆင်ထားတယ်
+        function deleteDoc(col, id) {
+            if(confirm("ဒီအော်ဒါကို ဖျက်မှာ သေချာလား ဆရာ?")) {
+                db.collection(col).doc(id).delete()
+                .then(() => {
+                    showToast("🗑️ ဒေတာကို အောင်မြင်စွာ ဖျက်ပြီးပါပြီ");
+                })
+                .catch((error) => {
+                    console.error("Error removing document: ", error);
+                    showToast("❌ ဖျက်လို့မရပါ (Error တက်နေသည်)");
+                });
+            }
         }
+
+
+        function switchTab(t) {
+    // အရင်ဆုံး Section အားလုံးကို ဖျက်ထားမယ်
+    document.getElementById('uploadSection').classList.add('hidden');
+    document.getElementById('orderSection').classList.add('hidden');
+    document.getElementById('manageSection').classList.add('hidden');
+    
+    // Tab ခလုတ်တွေရဲ့ Active အရောင်ကို အကုန်ဖြုတ်မယ်
+    document.getElementById('t1').classList.remove('active');
+    document.getElementById('t2').classList.remove('active');
+    document.getElementById('t3').classList.remove('active');
+
+    // အခုနှိပ်လိုက်တဲ့ Tab နဲ့ Section ကိုပဲ ပြန်ဖော်မယ်
+    if(t === 'upload') {
+        document.getElementById('uploadSection').classList.remove('hidden');
+        document.getElementById('t1').classList.add('active');
+    } else if(t === 'orders') {
+        document.getElementById('orderSection').classList.remove('hidden');
+        document.getElementById('t2').classList.add('active');
+        // Tab ပြောင်းလိုက်တာနဲ့ အော်ဒါတွေကို ချက်ချင်းဆွဲယူခိုင်းမယ်
+        syncData(); 
+    } else if(t === 'manage') {
+        document.getElementById('manageSection').classList.remove('hidden');
+        document.getElementById('t3').classList.add('active');
+    }
+}
+
+
+        syncData();
     </script>
 </body>
 </html>
+
